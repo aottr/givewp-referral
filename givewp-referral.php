@@ -30,7 +30,7 @@ function stb_set_check_referral_cookie() {
 add_action( 'init', 'stb_set_check_referral_cookie', 0 );
 
 /**
- * Custom Form Fields in Donation form
+ * Referral code field in Donation form
  *
  * @param $form_id
  */
@@ -38,25 +38,22 @@ function stb_give_donations_referral_field( $form_id ) {
 
     ?>
     <div id="give-message-wrap" class="form-row form-row-wide">
-        <label class="give-label" for="give-engraving-message">
-            <?php _e( 'What should be engraved on the plaque?', 'give' ); ?>
+        <label class="give-label" for="give-stb-referral">
+            <?php _e( 'Who is the referral partner?', 'give' ); ?>
             <span class="give-tooltip give-icon give-icon-question"
-                    data-tooltip="<?php _e( 'Please provide the names that should be engraved on the plaque.', 'give' ) ?>">
+                    data-tooltip="<?php _e( 'Please provide the referral code of your partner', 'give' ) ?>">
             </span>
         </label>
 
-        <textarea class="give-textarea" name="referral" id="give-engraving-message"><?=$_COOKIE['stb_referral']?></textarea>
+        <textarea class="give-textarea" name="referral" id="give-stb-referral"><?=$_COOKIE['stb_referral']?></textarea>
     </div>
     <?php
 }
-
-add_action( 'give_after_donation_levels', 'stb_give_donations_referral_field' );
+//add_action( 'give_after_donation_levels', 'stb_give_donations_referral_field' );
 
 
 /**
- * Add Field to Payment Meta
- *
- * Store the custom field data custom post meta attached to the `give_payment` CPT.
+ * Add referral code field to Payment Meta
  *
  * @param $payment_id
  *
@@ -64,9 +61,9 @@ add_action( 'give_after_donation_levels', 'stb_give_donations_referral_field' );
  */
 function stb_give_donations_save_referral( $payment_id ) {
 
-	if ( isset( $_POST['referral'] ) ) {
-		$message = wp_strip_all_tags( $_POST['referral'], true );
-		give_update_payment_meta( $payment_id, 'stb_referral', $message );
+	if ( isset( $_COOKIE['stb_referral'] ) ) {
+		$stb_referral = wp_strip_all_tags( $_COOKIE['stb_referral'], true );
+		give_update_payment_meta( $payment_id, 'stb_referral', $stb_referral );
 	}
 }
 add_action( 'give_insert_payment', 'stb_give_donations_save_referral' );
@@ -74,7 +71,7 @@ add_action( 'give_insert_payment', 'stb_give_donations_save_referral' );
 /**
  * Show Data in Transaction Details
  *
- * Show the custom field(s) on the transaction page.
+ * Show the referral code on the transaction page.
  *
  * @param $payment_id
  */
@@ -94,12 +91,29 @@ function stb_give_donations_donation_details( $payment_id ) {
 	<?php endif;
 
 }
-
 add_action( 'give_view_donation_details_billing_before', 'stb_give_donations_donation_details', 10, 1 );
 
 
 /**
- * Add Donation referral header in CSV.
+ * Add referral code in export donor fields tab.
+ */
+function stb_donation_standard_donor_fields() {
+	?>
+	<li>
+		<label for="give-stb-referral">
+			<input type="checkbox" checked
+			       name="give_give_donations_export_option[stb_referral]"
+			       id="give-stb-referral"><?php _e( 'Referral Code', 'give' ); ?>
+		</label>
+	</li>
+	<?php
+}
+
+add_action( 'give_export_donation_standard_donor_fields', 'stb_donation_standard_donor_fields' );
+
+
+/**
+ * Add referral code header in CSV.
  *
  * @param array $cols columns name for CSV
  *
@@ -118,7 +132,7 @@ add_filter( 'give_export_donation_get_columns_name', 'stb_update_columns_heading
 
 
 /**
- * Add Donation referral fields in CSV.
+ * Add referral code field in CSV.
  *
  * @param array Donation data.
  * @param Give_Payment $payment Instance of Give_Payment
@@ -134,7 +148,6 @@ function stb_export_donation_data( $data, $payment, $columns ) {
 
 	return $data;
 }
-
 add_filter( 'give_export_donation_data', 'stb_export_donation_data', 10, 3 );
 
 /**
@@ -147,7 +160,7 @@ add_filter( 'give_export_donation_data', 'stb_export_donation_data', 10, 3 );
  */
 function stb_export_custom_fields( $responses, $form_id ) {
 
-	if ( ! empty( $responses['standard_fields'] ) ) {
+	if (  ! empty( $responses['standard_fields'] ) ) {
 		$standard_fields = $responses['standard_fields'];
 		if ( in_array( 'stb_referral', $standard_fields ) ) {
 			$standard_fields              = array_diff( $standard_fields, array( 'stb_referral' ) );
