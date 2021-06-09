@@ -172,3 +172,64 @@ function stb_export_custom_fields( $responses, $form_id ) {
 }
 
 add_filter( 'give_export_donations_get_custom_fields', 'stb_export_custom_fields', 10, 2 );
+
+
+/**
+ * Register Section for Referral Code Settings.
+ *
+ * @param array $sections List of payment advanced sections.
+ *
+ * @since 1.0.0
+ *
+ * @return array
+ */
+
+function stb_register_advancved_sections( $sections ) {
+
+	$sections['stbreferral-settings'] = __( 'Referral Codes', 'stb-referral-for-give' );
+
+	return $sections;
+}
+
+add_filter( 'give_get_sections_advanced', 'stb_register_advancved_sections' );
+
+/**
+ * Register Admin Settings.
+ *
+ * @param array $settings List of admin settings.
+ *
+ * @since 1.0.0
+ *
+ * @return array
+ */
+function stb_register_advanced_settings_fields( $settings ) {
+
+	switch ( give_get_current_setting_section() ) {
+
+		case 'stbreferral-settings':
+			$settings = array(
+				array(
+					'id'   => 'give_title_stbreferral',
+					'type' => 'title',
+				),
+			);
+
+            $settings[] = array(
+				'name' => __( 'Referral Codes', 'stb-referral-for-give' ),
+				'desc' => __( 'Enter the referral codes line by line. **COMING SOON**', 'stb-referral-for-give' ),
+				'id'   => 'stbreferral_for_give_referral_codes',
+				'type' => 'textarea',
+		    );
+
+			$settings[] = array(
+				'id'   => 'give_title_stbreferral',
+				'type' => 'sectionend',
+			);
+
+			break;
+	}
+
+	return $settings;
+}
+//add_filter( 'give_get_settings_advanced', 'stb_register_advanced_settings_fields' );
+
